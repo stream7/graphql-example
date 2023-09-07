@@ -1,7 +1,6 @@
-import { useMutation, useQuery } from "@apollo/client";
+import { useMutation, useQuery, useApolloClient } from "@apollo/client";
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { GET_TODOS } from "./TodoList";
 import { graphql } from "../gql";
 import type { Todo, TodoError } from "../gql/graphql";
 import { Link } from "react-router-dom";
@@ -44,6 +43,8 @@ export default function Edit() {
 
   if (!id) throw new Error("Missing id");
 
+  const apolloClient = useApolloClient();
+
   const { loading, error, data } = useQuery(GET_TODO, { variables: { id } });
 
   const [form, setForm] = useState({
@@ -82,7 +83,6 @@ export default function Edit() {
         id,
         name: form.name,
       },
-      refetchQueries: [GET_TODOS],
       onCompleted: (data) => {
         const { errors } = data.updateTodo!;
 
@@ -94,6 +94,7 @@ export default function Edit() {
           );
         } else {
           setForm({ name: "" });
+          apolloClient.cache.evict({ fieldName: "todos" });
           navigate("/");
         }
       },

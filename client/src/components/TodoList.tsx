@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useQuery, useMutation } from "@apollo/client";
+import { useQuery, useMutation, useApolloClient } from "@apollo/client";
 import { graphql } from "../gql";
 import type { Todo } from "../gql/graphql";
 
@@ -46,13 +46,18 @@ const TodoRow = ({ todo }: { todo: Todo }) => {
 };
 
 const DeleteTodo = ({ id }: { id: Todo["id"] }) => {
+  const apolloClient = useApolloClient();
   const [deleteTodo, { data, loading, error }] = useMutation(DELETE_TODO, {
     variables: { id },
-    refetchQueries: [GET_TODOS], // apollo client con: unfortunately, this refetch happens even when our mutation is not successful
+    onCompleted: (data) => {
+      if (!data.deleteTodo.errors.length) {
+        apolloClient.cache.evict({ fieldName: "todos" });
+      }
+    },
   });
 
-  if (loading) return "Deleting...";
-  if (error) return `Delete error! ${error.message}`;
+  if (loading) return <span>Deleting...</span>;
+  if (error) return <span>`Delete error! ${error.message}`</span>;
 
   return (
     <>

@@ -1,10 +1,9 @@
-import { useMutation } from "@apollo/client";
+import { useMutation, useApolloClient } from "@apollo/client";
 import { graphql } from "../gql";
 import type { TodoError, Todo } from "../gql/graphql";
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { Link } from "react-router-dom";
-import { GET_TODOS } from "./TodoList";
 
 const CREATE_TODO = graphql(/* GraphQL */ `
   mutation CreateTodo($name: String!) {
@@ -30,6 +29,7 @@ const CREATE_TODO = graphql(/* GraphQL */ `
 `);
 
 export default function Create() {
+  const apolloClient = useApolloClient();
   const [createTodo] = useMutation(CREATE_TODO);
 
   const [form, setForm] = useState({
@@ -53,8 +53,7 @@ export default function Create() {
       variables: {
         name: form.name,
       },
-      refetchQueries: [GET_TODOS],
-      onCompleted: (data) => {
+      onCompleted: (data, options) => {
         const { errors } = data.createTodo!;
 
         if (errors.length) {
@@ -65,6 +64,7 @@ export default function Create() {
           );
         } else {
           setForm({ name: "" });
+          apolloClient.cache.evict({ fieldName: "todos" });
           navigate("/");
         }
       },
