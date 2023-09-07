@@ -1,0 +1,38 @@
+type Query {
+  todo(id: ID!): Todo
+  todos: [Todo!]!
+}
+
+type Mutation {
+  createTodo(name: String!): TodoResponse
+  deleteTodo(id: ID!): TodoResponse!
+  updateTodo(id: ID!, name: String!): TodoResponse
+}
+
+type Todo {
+  id: ID!
+  name: String!
+}
+
+type TodoResponse {
+  todo: Todo
+  errors: [TodoError!]!
+}
+
+union TodoError = TodoNameTaken | UserError
+
+type TodoNameTaken implements ValidationError {
+  message: String!
+  path: String!
+  existingTodoId: ID!
+}
+
+type UserError implements ValidationError {
+  message: String!
+  path: String!
+}
+
+interface ValidationError {
+  message: String!
+  path: String!
+}
