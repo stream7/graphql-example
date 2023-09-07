@@ -4,9 +4,9 @@ type Query {
 }
 
 type Mutation {
-  createTodo(name: String!): TodoResponse
+  createTodo(name: String!): TodoResponse!
   deleteTodo(id: ID!): TodoResponse!
-  updateTodo(id: ID!, name: String!): TodoResponse
+  updateTodo(id: ID!, name: String!): TodoResponse!
 }
 
 type Todo {

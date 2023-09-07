@@ -18,9 +18,9 @@ export type Scalars = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  createTodo?: Maybe<TodoResponse>;
+  createTodo: TodoResponse;
   deleteTodo: TodoResponse;
-  updateTodo?: Maybe<TodoResponse>;
+  updateTodo: TodoResponse;
 };
 
 
@@ -87,7 +87,7 @@ export type CreateTodoMutationVariables = Exact<{
 }>;
 
 
-export type CreateTodoMutation = { __typename?: 'Mutation', createTodo?: { __typename?: 'TodoResponse', todo?: { __typename?: 'Todo', id: string, name: string } | null, errors: Array<{ __typename: 'TodoNameTaken', message: string, path: string, existingTodoId: string } | { __typename: 'UserError', message: string, path: string }> } | null };
+export type CreateTodoMutation = { __typename?: 'Mutation', createTodo: { __typename?: 'TodoResponse', todo?: { __typename?: 'Todo', id: string, name: string } | null, errors: Array<{ __typename: 'TodoNameTaken', message: string, path: string, existingTodoId: string } | { __typename: 'UserError', message: string, path: string }> } };
 
 export type GetTodoQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -102,7 +102,7 @@ export type UpdateTodoMutationVariables = Exact<{
 }>;
 
 
-export type UpdateTodoMutation = { __typename?: 'Mutation', updateTodo?: { __typename?: 'TodoResponse', todo?: { __typename?: 'Todo', id: string, name: string } | null, errors: Array<{ __typename: 'TodoNameTaken', message: string, path: string, existingTodoId: string } | { __typename: 'UserError', message: string, path: string }> } | null };
+export type UpdateTodoMutation = { __typename?: 'Mutation', updateTodo: { __typename?: 'TodoResponse', todo?: { __typename?: 'Todo', id: string, name: string } | null, errors: Array<{ __typename: 'TodoNameTaken', message: string, path: string, existingTodoId: string } | { __typename: 'UserError', message: string, path: string }> } };
 
 export type GetTodosQueryVariables = Exact<{ [key: string]: never; }>;
 

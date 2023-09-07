@@ -19,9 +19,9 @@ export type Scalars = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  createTodo?: Maybe<TodoResponse>;
+  createTodo: TodoResponse;
   deleteTodo: TodoResponse;
-  updateTodo?: Maybe<TodoResponse>;
+  updateTodo: TodoResponse;
 };
 
 
@@ -192,9 +192,9 @@ export type ResolversParentTypes = ResolversObject<{
 }>;
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
-  createTodo?: Resolver<Maybe<ResolversTypes['TodoResponse']>, ParentType, ContextType, RequireFields<MutationCreateTodoArgs, 'name'>>;
+  createTodo?: Resolver<ResolversTypes['TodoResponse'], ParentType, ContextType, RequireFields<MutationCreateTodoArgs, 'name'>>;
   deleteTodo?: Resolver<ResolversTypes['TodoResponse'], ParentType, ContextType, RequireFields<MutationDeleteTodoArgs, 'id'>>;
-  updateTodo?: Resolver<Maybe<ResolversTypes['TodoResponse']>, ParentType, ContextType, RequireFields<MutationUpdateTodoArgs, 'id' | 'name'>>;
+  updateTodo?: Resolver<ResolversTypes['TodoResponse'], ParentType, ContextType, RequireFields<MutationUpdateTodoArgs, 'id' | 'name'>>;
 }>;
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
