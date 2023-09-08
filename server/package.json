@@ -6,14 +6,13 @@
   "scripts": {
     "postinstall": "npm run compile",
     "compile": "tsc",
-    "start": "ts-node --esm src/server.ts",
+    "start": "npm run compile && node dist/src/server.js",
     "generate:types": "graphql-codegen",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
   "dependencies": {
     "@apollo/server": "^4.7.5",
     "@apollo/subgraph": "^2.4.8",
@@ -27,7 +26,6 @@
     "@graphql-codegen/typescript": "^4.0.1",
     "@graphql-codegen/typescript-resolvers": "^4.0.1",
     "@types/node": "^20.3.3",
-    "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   }
 }
