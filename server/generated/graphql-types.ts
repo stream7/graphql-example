@@ -6,7 +6,6 @@ export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: 
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
@@ -19,9 +18,9 @@ export type Scalars = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  createTodo: TodoResponse;
-  deleteTodo: TodoResponse;
-  updateTodo: TodoResponse;
+  createTodo: Todo;
+  deleteTodo: Todo;
+  updateTodo: Todo;
 };
 
 
@@ -55,32 +54,6 @@ export type Todo = {
   __typename?: 'Todo';
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-};
-
-export type TodoError = TodoNameTaken | UserError;
-
-export type TodoNameTaken = ValidationError & {
-  __typename?: 'TodoNameTaken';
-  existingTodoId: Scalars['ID']['output'];
-  message: Scalars['String']['output'];
-  path: Scalars['String']['output'];
-};
-
-export type TodoResponse = {
-  __typename?: 'TodoResponse';
-  errors: Array<TodoError>;
-  todo?: Maybe<Todo>;
-};
-
-export type UserError = ValidationError & {
-  __typename?: 'UserError';
-  message: Scalars['String']['output'];
-  path: Scalars['String']['output'];
-};
-
-export type ValidationError = {
-  message: Scalars['String']['output'];
-  path: Scalars['String']['output'];
 };
 
 export type WithIndex<TObject> = TObject & Record<string, any>;
@@ -151,15 +124,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
   info: GraphQLResolveInfo
 ) => TResult | Promise<TResult>;
 
-/** Mapping of union types */
-export type ResolversUnionTypes<RefType extends Record<string, unknown>> = ResolversObject<{
-  TodoError: ( TodoNameTaken ) | ( UserError );
-}>;
 
-/** Mapping of interface types */
-export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = ResolversObject<{
-  ValidationError: ( TodoNameTaken ) | ( UserError );
-}>;
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
@@ -169,11 +134,6 @@ export type ResolversTypes = ResolversObject<{
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Todo: ResolverTypeWrapper<Todo>;
-  TodoError: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['TodoError']>;
-  TodoNameTaken: ResolverTypeWrapper<TodoNameTaken>;
-  TodoResponse: ResolverTypeWrapper<Omit<TodoResponse, 'errors'> & { errors: Array<ResolversTypes['TodoError']> }>;
-  UserError: ResolverTypeWrapper<UserError>;
-  ValidationError: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['ValidationError']>;
 }>;
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -184,17 +144,12 @@ export type ResolversParentTypes = ResolversObject<{
   Query: {};
   String: Scalars['String']['output'];
   Todo: Todo;
-  TodoError: ResolversUnionTypes<ResolversParentTypes>['TodoError'];
-  TodoNameTaken: TodoNameTaken;
-  TodoResponse: Omit<TodoResponse, 'errors'> & { errors: Array<ResolversParentTypes['TodoError']> };
-  UserError: UserError;
-  ValidationError: ResolversInterfaceTypes<ResolversParentTypes>['ValidationError'];
 }>;
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
-  createTodo?: Resolver<ResolversTypes['TodoResponse'], ParentType, ContextType, RequireFields<MutationCreateTodoArgs, 'name'>>;
-  deleteTodo?: Resolver<ResolversTypes['TodoResponse'], ParentType, ContextType, RequireFields<MutationDeleteTodoArgs, 'id'>>;
-  updateTodo?: Resolver<ResolversTypes['TodoResponse'], ParentType, ContextType, RequireFields<MutationUpdateTodoArgs, 'id' | 'name'>>;
+  createTodo?: Resolver<ResolversTypes['Todo'], ParentType, ContextType, RequireFields<MutationCreateTodoArgs, 'name'>>;
+  deleteTodo?: Resolver<ResolversTypes['Todo'], ParentType, ContextType, RequireFields<MutationDeleteTodoArgs, 'id'>>;
+  updateTodo?: Resolver<ResolversTypes['Todo'], ParentType, ContextType, RequireFields<MutationUpdateTodoArgs, 'id' | 'name'>>;
 }>;
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
@@ -208,43 +163,9 @@ export type TodoResolvers<ContextType = any, ParentType extends ResolversParentT
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type TodoErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['TodoError'] = ResolversParentTypes['TodoError']> = ResolversObject<{
-  __resolveType: TypeResolveFn<'TodoNameTaken' | 'UserError', ParentType, ContextType>;
-}>;
-
-export type TodoNameTakenResolvers<ContextType = any, ParentType extends ResolversParentTypes['TodoNameTaken'] = ResolversParentTypes['TodoNameTaken']> = ResolversObject<{
-  existingTodoId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  path?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type TodoResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['TodoResponse'] = ResolversParentTypes['TodoResponse']> = ResolversObject<{
-  errors?: Resolver<Array<ResolversTypes['TodoError']>, ParentType, ContextType>;
-  todo?: Resolver<Maybe<ResolversTypes['Todo']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type UserErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserError'] = ResolversParentTypes['UserError']> = ResolversObject<{
-  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  path?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type ValidationErrorResolvers<ContextType = any, ParentType extends ResolversParentTypes['ValidationError'] = ResolversParentTypes['ValidationError']> = ResolversObject<{
-  __resolveType: TypeResolveFn<'TodoNameTaken' | 'UserError', ParentType, ContextType>;
-  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  path?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-}>;
-
 export type Resolvers<ContextType = any> = ResolversObject<{
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Todo?: TodoResolvers<ContextType>;
-  TodoError?: TodoErrorResolvers<ContextType>;
-  TodoNameTaken?: TodoNameTakenResolvers<ContextType>;
-  TodoResponse?: TodoResponseResolvers<ContextType>;
-  UserError?: UserErrorResolvers<ContextType>;
-  ValidationError?: ValidationErrorResolvers<ContextType>;
 }>;
 

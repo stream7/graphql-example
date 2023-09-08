@@ -6,12 +6,7 @@ import { buildSubgraphSchema } from "@apollo/subgraph";
 import { expressMiddleware } from "@apollo/server/express4";
 import resolvers from "./resolvers.js";
 import { readFileSync } from "fs";
-import { resolve, dirname } from "path";
-
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { resolve } from "path";
 
 const PORT = process.env.PORT || 5050;
 const app = express();
@@ -21,7 +16,7 @@ app.use(express.json());
 
 //highlight-start
 const typeDefs = gql(
-  readFileSync(resolve(__dirname, "..", "schema.graphql"), {
+  readFileSync(resolve("./src/schema.graphql"), {
     encoding: "utf-8",
   })
 );
@@ -32,11 +27,16 @@ const server = new ApolloServer({
 });
 // Note you must call `start()` on the `ApolloServer`
 // instance before passing the instance to `expressMiddleware`
-await server.start();
 
-app.use("/graphql", cors(), json(), expressMiddleware(server));
+async function start() {
+  await server.start();
 
-// start the Express server
-app.listen(PORT, () => {
-  console.log(`Server is running on port: ${PORT}`);
-});
+  app.use("/graphql", cors(), json(), expressMiddleware(server));
+
+  // start the Express server
+  app.listen(PORT, () => {
+    console.log(`Server is running on port: ${PORT}`);
+  });
+}
+
+start();

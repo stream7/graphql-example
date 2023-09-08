@@ -1,9 +1,11 @@
-import { useMutation, useQuery, useApolloClient } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { graphql } from "../gql";
-import type { Todo, TodoError } from "../gql/graphql";
+import type { Todo } from "../gql/graphql";
+import { isTodoValidationError, TodoError } from "../errors";
 import { Link } from "react-router-dom";
+import { GET_TODOS } from "./TodoList";
 
 const GET_TODO = graphql(/* GraphQL */ `
   query GetTodo($id: ID!) {
@@ -17,22 +19,8 @@ const GET_TODO = graphql(/* GraphQL */ `
 const UPDATE_TODO = graphql(/* GraphQL */ `
   mutation UpdateTodo($id: ID!, $name: String!) {
     updateTodo(id: $id, name: $name) {
-      todo {
-        id
-        name
-      }
-      errors {
-        __typename
-        ... on TodoNameTaken {
-          message
-          path
-          existingTodoId
-        }
-        ... on UserError {
-          message
-          path
-        }
-      }
+      id
+      name
     }
   }
 `);
@@ -43,8 +31,6 @@ export default function Edit() {
 
   if (!id) throw new Error("Missing id");
 
-  const apolloClient = useApolloClient();
-
   const { loading, error, data } = useQuery(GET_TODO, { variables: { id } });
 
   const [form, setForm] = useState({
@@ -54,7 +40,9 @@ export default function Edit() {
     Record<keyof Todo, TodoError | undefined>
   >({} as Record<keyof Todo, TodoError | undefined>);
   const navigate = useNavigate();
-  const [updateTodo] = useMutation(UPDATE_TODO);
+  const [updateTodo] = useMutation(UPDATE_TODO, {
+    refetchQueries: [GET_TODOS],
+  });
 
   useEffect(() => {
     if (data && data.todo) setForm({ name: data.todo.name });
@@ -83,24 +71,22 @@ export default function Edit() {
         id,
         name: form.name,
       },
-      onCompleted: (data) => {
-        const { errors } = data.updateTodo!;
-
-        if (errors.length) {
+      onCompleted: () => {
+        setForm({ name: "" });
+        navigate("/");
+      },
+      onError: (apolloError) => {
+        console.log("apolloError on update", apolloError);
+        const error = apolloError.graphQLErrors[0];
+        if (isTodoValidationError(error)) {
           setErrors(
-            errors.reduce((acc, error) => {
+            error.extensions.errors.reduce((acc, error) => {
               return { ...acc, [error.path]: error };
             }, {} as Record<keyof Todo, TodoError | undefined>)
           );
         } else {
-          setForm({ name: "" });
-          apolloClient.cache.evict({ fieldName: "todos" });
-          navigate("/");
+          alert(apolloError.message);
         }
-      },
-      onError: (error) => {
-        console.log("error", error);
-        alert(error.message);
       },
     });
   }
@@ -124,7 +110,7 @@ export default function Edit() {
               <br />
               <span style={{ color: "red" }}>
                 {errors.name.message}{" "}
-                {errors.name.__typename === "TodoNameTaken" && (
+                {"existingTodoId" in errors.name && (
                   <Link to={`/edit/${errors.name.existingTodoId}`}>
                     Edit existing todo
                   </Link>
