@@ -1,8 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useQuery, useMutation, useApolloClient } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import { graphql } from "../gql";
 import type { Todo } from "../gql/graphql";
+import { isTodoValidationError } from "../errors";
 
 export const GET_TODOS = graphql(/* GraphQL */ `
   query GetTodos {
@@ -15,18 +16,7 @@ export const GET_TODOS = graphql(/* GraphQL */ `
 const DELETE_TODO = graphql(/* GraphQL */ `
   mutation DeleteTodo($id: ID!) {
     deleteTodo(id: $id) {
-      errors {
-        __typename
-        ... on TodoNameTaken {
-          message
-          path
-          existingTodoId
-        }
-        ... on UserError {
-          message
-          path
-        }
-      }
+      id
     }
   }
 `);
@@ -46,18 +36,15 @@ const TodoRow = ({ todo }: { todo: Todo }) => {
 };
 
 const DeleteTodo = ({ id }: { id: Todo["id"] }) => {
-  const apolloClient = useApolloClient();
-  const [deleteTodo, { data, loading, error }] = useMutation(DELETE_TODO, {
-    variables: { id },
-    onCompleted: (data) => {
-      if (!data.deleteTodo.errors.length) {
-        apolloClient.cache.evict({ fieldName: "todos" });
-      }
-    },
-  });
+  const [deleteTodo, { loading, error: apolloError }] = useMutation(
+    DELETE_TODO,
+    {
+      variables: { id },
+      refetchQueries: [GET_TODOS],
+    }
+  );
 
   if (loading) return <span>Deleting...</span>;
-  if (error) return <span>`Delete error! ${error.message}`</span>;
 
   return (
     <>
@@ -71,11 +58,15 @@ const DeleteTodo = ({ id }: { id: Todo["id"] }) => {
       >
         Delete
       </button>
-      {data?.deleteTodo.errors.length && (
+      {apolloError && (
         <>
           {" "}
           <span style={{ color: "red" }}>
-            {data.deleteTodo.errors[0].message}
+            {apolloError.graphQLErrors.length
+              ? isTodoValidationError(apolloError.graphQLErrors[0])
+                ? apolloError.graphQLErrors[0].extensions.errors[0].message
+                : apolloError.graphQLErrors[0].message
+              : apolloError.message}
           </span>
         </>
       )}

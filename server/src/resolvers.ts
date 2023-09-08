@@ -1,4 +1,5 @@
 import type { Resolvers, Todo } from "../generated/graphql-types";
+import { TodoValidationError } from "./errors";
 
 const db: Record<string, Todo | undefined> = {};
 
@@ -25,93 +26,77 @@ const resolvers: Resolvers<{}> = {
       const existingTodo = Object.values(db).find((todo) => todo.name === name);
 
       if (existingTodo) {
-        return {
-          errors: [
-            {
-              __typename: "TodoNameTaken",
-              message: "Todo name taken",
-              path: "name",
-              existingTodoId: existingTodo.id,
-            },
-          ],
-        };
+        throw new TodoValidationError("Validation failed", [
+          {
+            message: "Todo name taken",
+            path: "name",
+            existingTodoId: existingTodo.id,
+          },
+        ]);
       }
 
       if (name) {
         const id = getNextId();
         const todo = { id, name };
         db[id] = todo;
-        return { todo, errors: [] };
+        return todo;
       }
 
-      return {
-        errors: [
-          {
-            __typename: "UserError",
-            message: "Name is required",
-            path: "name",
-          },
-        ],
-      };
+      throw new TodoValidationError("Validation failed", [
+        {
+          message: "Name is required",
+          path: "name",
+        },
+      ]);
     },
     updateTodo(_, { id, name }) {
       const todo = db[id];
 
       if (name.trim() === "")
-        return {
-          errors: [
-            {
-              __typename: "UserError",
-              message: "Name is required",
-              path: "name",
-            },
-          ],
-        };
+        throw new TodoValidationError("Validation failed", [
+          {
+            message: "Name is required",
+            path: "name",
+          },
+        ]);
 
       const existingTodo = Object.values(db).find((todo) => todo.name === name);
       if (existingTodo && existingTodo.id !== id) {
-        return {
-          errors: [
-            {
-              __typename: "TodoNameTaken",
-              message: "Todo name taken",
-              path: "name",
-              existingTodoId: existingTodo.id,
-            },
-          ],
-        };
+        throw new TodoValidationError("Validation failed", [
+          {
+            message: "Todo name taken",
+            path: "name",
+            existingTodoId: existingTodo.id,
+          },
+        ]);
       }
 
       if (todo) {
         todo.name = name;
-        return { todo, errors: [] };
+        return todo;
       }
 
-      return {
-        errors: [
-          { __typename: "UserError", message: "Todo not found", path: "id" },
-        ],
-      };
+      throw new TodoValidationError("Validation failed", [
+        {
+          message: "Todo not found",
+          path: "id",
+        },
+      ]);
     },
     deleteTodo: (_, { id }) => {
       const todo = db[id];
 
       if (todo) {
         delete db[id];
-        return {
-          errors: [],
-        };
+        return todo;
       }
 
-      return {
-        errors: [
-          {
-            __typename: "UserError",
-            message: "Todo not found",
-            path: "id",
-          },
-        ],
-      };
+      throw new TodoValidationError("Validation failed", [
+        {
+          message: "Todo not found",
+          path: "id",
+        },
+      ]);
     },
   },
 };

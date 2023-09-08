@@ -1,36 +1,25 @@
-import { useMutation, useApolloClient } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import { graphql } from "../gql";
-import type { TodoError, Todo } from "../gql/graphql";
+import type { Todo } from "../gql/graphql";
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { Link } from "react-router-dom";
+import { GET_TODOS } from "./TodoList";
+import { type TodoError, isTodoValidationError } from "../errors";
 
 const CREATE_TODO = graphql(/* GraphQL */ `
   mutation CreateTodo($name: String!) {
     createTodo(name: $name) {
-      todo {
-        id
-        name
-      }
-      errors {
-        __typename
-        ... on TodoNameTaken {
-          message
-          path
-          existingTodoId
-        }
-        ... on UserError {
-          message
-          path
-        }
-      }
+      id
+      name
     }
   }
 `);
 
 export default function Create() {
-  const apolloClient = useApolloClient();
-  const [createTodo] = useMutation(CREATE_TODO);
+  const [createTodo] = useMutation(CREATE_TODO, {
+    refetchQueries: [GET_TODOS],
+  });
 
   const [form, setForm] = useState({
     name: "",
@@ -53,24 +42,22 @@ export default function Create() {
       variables: {
         name: form.name,
       },
-      onCompleted: (data, options) => {
-        const { errors } = data.createTodo!;
-
-        if (errors.length) {
+      onCompleted: () => {
+        setForm({ name: "" });
+        navigate("/");
+      },
+      onError: (apolloError) => {
+        const error = apolloError.graphQLErrors[0];
+        console.log("apolloError on create", apolloError);
+        if (isTodoValidationError(error)) {
           setErrors(
-            errors.reduce((acc, error) => {
+            error.extensions.errors.reduce((acc, error) => {
               return { ...acc, [error.path]: error };
             }, {} as Record<keyof Todo, TodoError | undefined>)
           );
         } else {
-          setForm({ name: "" });
-          apolloClient.cache.evict({ fieldName: "todos" });
-          navigate("/");
+          alert(apolloError.message);
         }
-      },
-      onError: (error) => {
-        console.log("error", error);
-        alert(error.message);
       },
     });
   }
@@ -95,7 +82,7 @@ export default function Create() {
               <br />
               <span style={{ color: "red" }}>
                 {errors.name.message}{" "}
-                {errors.name.__typename === "TodoNameTaken" && (
+                {"existingTodoId" in errors.name && (
                   <Link to={`/edit/${errors.name.existingTodoId}`}>
                     Edit existing todo
                   </Link>
