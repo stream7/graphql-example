@@ -2,14 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import {
-  ApolloClient,
-  ApolloProvider,
-  createHttpLink,
-  from,
-  InMemoryCache,
-} from "@apollo/client";
-import { onError } from "@apollo/client/link/error";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "bootstrap/dist/css/bootstrap.css";
 import { BrowserRouter } from "react-router-dom";
 
@@ -17,25 +10,14 @@ const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
 
-const httpLink = createHttpLink({
-  uri: "http://localhost:5050/graphql",
-});
-
-const errorLink = onError((error) => {
-  console.error("ApolloError", error);
-});
-
-export const client = new ApolloClient({
-  cache: new InMemoryCache(),
-  link: from([errorLink, httpLink]),
-});
+const client = new QueryClient();
 
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <ApolloProvider client={client}>
+      <QueryClientProvider client={client}>
         <App />
-      </ApolloProvider>
+      </QueryClientProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
